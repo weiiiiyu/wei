@@ -70,7 +70,7 @@ var main = {
 	this.bullet.exists = false;
 
 	game.physics.arcade.enable(this.bullet);
-	this.tank = game.add.sprite(24, 500, 'tank');
+	this.tank = game.add.sprite(30, 500, 'tank');
 	game.physics.arcade.enable(this.tank);
 	this.turret = game.add.sprite(this.tank.x+33, this.tank.y+14, 'turret');
 	game.physics.arcade.enable(this.turret);
