@@ -170,6 +170,7 @@ var main = {
 	  this.touch=0;
 	  this.scoreText.text = '分數: ' + this.score;
 	  box01.kill();
+	  this.bullet.kill();
 	  this.box02.x=20;
 	  this.box02.y=260;
 	  
@@ -181,6 +182,7 @@ var main = {
 	  this.touch=0;
 	  this.scoreText.text = '分數: ' + this.score;
 	  box02.kill();
+	  this.bullet.kill();
 	  this.box03.x=720;
 	  this.box03.y=210;
 	  
@@ -192,6 +194,7 @@ var main = {
 	  this.touch=0;
 	  this.scoreText.text = '分數: ' + this.score;
 	  box03.kill();
+	  this.bullet.kill();
 	  game.state.start('main');
   },
   
