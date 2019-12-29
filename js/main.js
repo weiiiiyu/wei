@@ -14,6 +14,8 @@ var main = {
 	game.load.image('box03', 'assets/box03.png');
 	game.load.image('bullet', 'assets/bullet.png');
 	game.load.image('boss', 'assets/starb.png');
+	game.load.image('bossbullet', 'assets/star2.png');
+
 	game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
   },
   create: function(){
@@ -88,7 +90,7 @@ var main = {
 	this.nextShotAt = 0;
 	this.bulletdamage = 15;
 	this.bulletDelay = 1000;
-
+	
 	this.bullettype = 1;
 
 	
@@ -102,6 +104,14 @@ var main = {
     this.nextEnemyAt = 0;
     this.enemyDelay = 1000;
 	
+	this.bossenemyPool = game.add.group();
+    this.bossenemyPool.enableBody = true;
+    this.bossenemyPool.createMultiple(50, 'star');
+    this.bossenemyPool.setAll('anchor.x', 0.5);
+    this.bossenemyPool.setAll('anchor.y', 0.5);
+	this.bossenemyPool.setAll('outOfBoundsKill', true);
+    this.bossenemyPool.setAll('checkWorldBounds', true);
+    this.nextbossEnemyAt = 0;
 	
 	this.boss = game.add.group();
 	this.boss.enableBody = true;
@@ -113,6 +123,17 @@ var main = {
 	this.bossDelay = 10000;
 	this.bosslife = 750;
 
+
+	this.bossbulletPool = game.add.group();
+	this.bossbulletPool.enableBody = true;
+	this.bossbulletPool.createMultiple(20, 'bossbullet');
+	this.bossbulletPool.setAll('anchor.x', 0.5);
+	this.bossbulletPool.setAll('anchor.y', 0.5);
+	this.bossbulletPool.setAll('outOfBoundsKill', true);
+    this.bossbulletPool.setAll('checkWorldBounds', true);
+	this.bossnextShotAt = 0;
+	this.bossbulletDelay = 1000;
+	
 	
 	
 	this.g = game.add.graphics(40,10);
@@ -142,40 +163,59 @@ var main = {
 	score = 0;
 	this.scoreText = game.add.text(16, 30, '分數: 0',{fontSize: '24px', fill: '#000'});
  	this.scoreText.fixedToCamera=true;
+	
+	this.instructions1 = game.add.text(400,200,'', {font: '20px Adobe 繁黑體 Std', fill: '#000',align: 'center'});
+	this.instructions2 = game.add.text(400,200,'', {font: '20px Adobe 繁黑體 Std', fill: '#000',align: 'center'});
+	this.instructions3 = game.add.text(400,200,'', {font: '20px Adobe 繁黑體 Std', fill: '#000',align: 'center'});
+	this.instructions1.fixedToCamera=true;
+	this.instructions2.fixedToCamera=true;
+	this.instructions3.fixedToCamera=true;
+	this.instructions1.alpha=0.5;
+	this.instructions2.alpha=0.5;
+	this.instructions3.alpha=0.5;
+	this.instructions1.anchor.setTo(0.5);
+	this.instructions2.anchor.setTo(0.5);
+	this.instructions3.anchor.setTo(0.5);
+	this.textdestorycd=4000;
+	this.textdestorycd2=4000;
+	this.textdestorycd3=4000;
+	this.textdestorycd4=4000;
 
- 
- 
- 
+	
+	this.bossinstro = game.add.text(400,150,'', {font: '20px Adobe 繁黑體 Bold ', fill: '#FF3030',align: 'center'});
+	this.bossinstro.fixedToCamera=true;
+	this.bossinstro.alpha=0.5;
+	this.bossinstro.anchor.setTo(0.5);
   },
 
   update: function(){
 
 
-	//  this.score = this.bullettype;
-	 // this.scoreText.text = '分數: ' + this.score;
+	 // this.score = this.boss.x;
+	  //this.scoreText.text = '分數: ' + this.score;
 
 	//this.s.width--;
-	if(this.mylife==4)
-	{
-		this.life4.kill();
-	}
-	if(this.mylife==3)
-	{
-		this.life3.kill();
-	}
 
-	if(this.mylife==2)
-	{
-		this.life2.kill();
-	}
-	if(this.mylife==1)
-	{
-		this.life1.kill();
-	}
-	if(this.mylife==0)
+
+
+
+
+	if(this.mylife<=0)
 	{
 		this.life.kill();
 		game.state.start('end');
+	}else if(this.mylife==1)
+	{
+		this.life1.kill();
+	}else if(this.mylife==2)
+	{
+		this.life2.kill();
+	}else if(this.mylife==3)
+	{
+		this.life3.kill();
+	}else if(this.mylife==4)
+	{
+		this.life4.kill();
 	}
 	
 	if(this.bullettype==1&&game.input.keyboard.isDown(Phaser.Keyboard.Z))
@@ -191,13 +231,12 @@ var main = {
 		this.fire3();
 	}
 	
-	if (this.nextEnemyAt<game.time.now && this.enemyPool.countDead()>0) {
+	if (this.nextEnemyAt<game.time.now && this.enemyPool.countDead()>0&&this.bosslife>=749) {
       this.nextEnemyAt = game.time.now + this.enemyDelay;
       var enemy = this.enemyPool.getFirstExists(false);
       enemy.reset(game.rnd.integerInRange(20, 1300), 0);
       enemy.body.velocity.y = game.rnd.integerInRange(30, 60);
 	  enemy.body.bounce.y=0.9;
-
 
     } 
 
@@ -206,13 +245,25 @@ var main = {
 	this.player.body.velocity.x = 0;
 	
 
-	if (score>=10) {
+	if (score>=100) {
 		this.bossapper();
 		 //score += 100;
 	}
-	if (this.bosslife<=500) {
+	if (this.bosslife<=550) {
 	
 		this.bossmove();	
+	}
+	if (this.bosslife<=500&this.nextbossEnemyAt<game.time.now && this.bossenemyPool.countDead()>0) {
+		if (this.nextbossEnemyAt<game.time.now && this.bossenemyPool.countDead()>0) {
+			this.nextbossEnemyAt = game.time.now + 800;
+			var bossenemy = this.bossenemyPool.getFirstExists(false);
+			bossenemy.reset(1000,game.rnd.integerInRange(20, 500));
+			bossenemy.body.velocity.x = game.rnd.integerInRange(-30, -160);
+		}
+	}
+	if (this.bosslife<=300&this.bosslife>=100) {
+	
+		this.bossfire();	
 	}
 	if (this.cursors.left.isDown) {
 		this.player.body.velocity.x = -150;
@@ -235,7 +286,11 @@ var main = {
 	game.physics.arcade.overlap(this.player, this.box03, this.collectbox03,null, this);
 	game.physics.arcade.overlap(this.player, this.enemyPool, this.hitplayer,null, this);
 	game.physics.arcade.overlap(this.player, this.boss, this.bosshitplayer,null, this);
+	game.physics.arcade.overlap(this.player, this.bossbulletPool, this.bossbhitplayer,null, this);
+	game.physics.arcade.overlap(this.player, this.bossenemyPool, this.bossehitplayer,null, this);
 	game.physics.arcade.overlap(this.bulletPool, this.enemyPool,this.killStar, null, this);
+	game.physics.arcade.overlap(this.bulletPool, this.bossbulletPool,this.killbossb, null, this);
+	game.physics.arcade.overlap(this.bulletPool, this.bossenemyPool,this.killbosse, null, this);
 	game.physics.arcade.overlap(this.bulletPool, this.boss,this.bosshit, null, this);
 	game.physics.arcade.overlap(this.bulletPool, this.platforms,this.fuckyourself, null, this);
 
@@ -334,28 +389,91 @@ var main = {
 
 	},
 	
+	bossfire: function() {
+
+		if (!this.boss.alive || this.bossnextShotAt>game.time.now) {
+		  return;
+		}
+		if (this.bossbulletPool.countDead()==0) {
+		  return;
+		}
+		this.bossnextShotAt = game.time.now + this.bossbulletDelay;
+		
+		var bossx = game.rnd.integerInRange(0,1)
+		
+		var bullet = this.bossbulletPool.getFirstExists(false);	
+		bullet.reset(1100, 300);
+		bullet.body.velocity.x = -500;
+		
+		
+		if(bossx==0){
+			var bullet = this.bossbulletPool.getFirstExists(false);	
+			bullet.reset(1100, 300);
+			bullet.body.velocity.x = -500;
+			bullet.body.velocity.y = 150;
+			var bullet = this.bossbulletPool.getFirstExists(false);	
+			bullet.reset(1100, 300);
+			bullet.body.velocity.x = -500;
+			bullet.body.velocity.y = 300;
+		}
+		if(bossx==1)
+		{
+			var bullet = this.bossbulletPool.getFirstExists(false);	
+			bullet.reset(1100, 300);
+			bullet.body.velocity.x = -500;
+			bullet.body.velocity.y = -150;
+			var bullet = this.bossbulletPool.getFirstExists(false);	
+			bullet.reset(1100, 300);
+			bullet.body.velocity.x = -500;
+			bullet.body.velocity.y = -300;
+		}
+			
+
+
+	},
+	
   fuckyourself: function(bullet, platforms) {
 	bullet.kill();
   },
-  
+  instructions1destroy: function() {
+	this.instructions1.destroy();
+  },
+  instructions2destroy: function() {
+	this.instructions2.destroy();
+  },
+  instructions3destroy: function() {
+	this.instructions3.destroy();
+  },
+  bossintrodelay: function() {
+	this.bossinstro.destroy();
+  },
   hitplayer: function(player, enemy) {
 	enemy.kill();  
 	this.mylife-=1;
   },
-   bosshitplayer: function(player, boss) { 
+  bosshitplayer: function(player, boss) { 
 	this.mylife-=1;
 
   },
-  
+  bossbhitplayer: function(player,bossbullet) { 
+	this.mylife-=1;
+	bossbullet.kill();
+
+  },
+  bossehitplayer: function(player,bossenemy) { 
+	this.mylife-=1;
+	bossenemy.kill();
+  },
   collectbox01: function(player, box01){
 	  
-	 score += 10;
 	  this.bullettype=2;
 	  this.scoreText.text = '分數: ' + score;
 	  box01.kill();
 	  this.box02.x=20;
 	  this.box02.y=260;
 	  //game.state.start('end');
+	  this.instructions1.text='因獲得了秋行軍蟲的知識，農藥子彈+1(幼蟲時頭上有著黃色倒Y標誌)'
+	  game.time.events.add(this.textdestorycd,this.instructions1destroy, this);
 
   },
   
@@ -367,6 +485,8 @@ var main = {
 	  this.box03.x=720;
 	  this.box03.y=210;
 	  this.bulletDelay=500;
+	  this.instructions2.text='因獲得了秋行軍蟲的知識，農藥攻速x2(幼蟲時背上每節都有4個斑點)'
+	  game.time.events.add(this.textdestorycd,this.instructions2destroy, this);
 	  
   },
   
@@ -376,16 +496,32 @@ var main = {
 	  this.scoreText.text = '分數: ' + score;
 	  box03.kill();
 	  this.bullettype=3;
+	  this.instructions3.text='因獲得了秋行軍蟲的知識，農藥子彈再+1(幼蟲時背上4個斑點連起呈梯形狀)'
+	  game.time.events.add(this.textdestorycd,this.instructions3destroy, this);
   },
   
   killStar: function(bullet, enemy) {
 	  
 	enemy.kill();
-	this.touch=0;
 	score += 10;
 	this.scoreText.text = '分數: ' + score;
 	bullet.kill();
-	//game.state.start('main');
+
+  },
+  killbosse: function(bullet, bossenemy) {
+	  
+	bossenemy.kill();
+	score += 10;
+	this.scoreText.text = '分數: ' + score;
+	bullet.kill();
+
+  },
+   killbossb: function(bullet, bossbullet) {
+	  
+	bossbullet.kill();
+	score += 10;
+	this.scoreText.text = '分數: ' + score;
+	bullet.kill();
 
   },
 
@@ -395,9 +531,11 @@ var main = {
 	{
 		this.boss.x--;
 	}	
+	this.bossinstro.text='巨型秋行軍蟲王出現啦，打敗他拯救玉米田吧'
+	game.time.events.add(this.textdestorycd,this.bossintrodelay, this);
 	this.boss.exists = true;
 	this.boss.alive = true;
-
+	this.enemyPool.kill();
   },
    bossmove: function() {
 	  
